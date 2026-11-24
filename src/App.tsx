@@ -1,5 +1,7 @@
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
+import { ProtectedRoute } from './components/auth/ProtectedRoute';
+import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Bookings from './pages/Bookings';
 import Customers from './pages/Customers';
@@ -11,7 +13,17 @@ import Settings from './pages/Settings';
 function App() {
   return (
     <Routes>
-      <Route element={<MainLayout />}>
+      {/* Public route */}
+      <Route path="/login" element={<Login />} />
+
+      {/* Protected Admin Routes */}
+      <Route
+        element={
+          <ProtectedRoute>
+            <MainLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route path="/" element={<Dashboard />} />
         <Route path="/customers" element={<Customers />} />
         <Route path="/bookings" element={<Bookings />} />
@@ -20,6 +32,9 @@ function App() {
         <Route path="/reports" element={<Reports />} />
         <Route path="/settings" element={<Settings />} />
       </Route>
+
+      {/* Fallback */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

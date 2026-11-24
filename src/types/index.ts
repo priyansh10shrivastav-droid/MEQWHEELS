@@ -3,3 +3,5 @@ export * from './customer';
 export * from './vehicle';
 export * from './payment';
 export * from './settings';
+export * from './auth';
+export * from './notification';
