@@ -7,7 +7,7 @@ import { Payment } from '../types/payment';
 export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   {
     id: 'VH-001',
-    registrationNumber: 'KA-01-MW-1001',
+    registrationNumber: 'MH30AH6494',
     brand: 'Honda',
     model: 'Activa 2G',
     category: 'Scooter',
@@ -23,7 +23,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-002',
-    registrationNumber: 'KA-01-MW-1002',
+    registrationNumber: 'MH14HC8750',
     brand: 'Honda',
     model: 'Activa 6G',
     category: 'Scooter',
@@ -39,7 +39,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-003',
-    registrationNumber: 'KA-01-MW-1003',
+    registrationNumber: 'MH12LC8010',
     brand: 'Yamaha',
     model: 'Fascino 125',
     category: 'Scooter',
@@ -55,7 +55,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-004',
-    registrationNumber: 'KA-01-MW-1004',
+    registrationNumber: 'MH12VM4279',
     brand: 'TVS',
     model: 'Raider 125',
     category: 'Motorcycle',
@@ -71,7 +71,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-005',
-    registrationNumber: 'KA-01-MW-1005',
+    registrationNumber: 'MH12GT7946',
     brand: 'Honda',
     model: 'Shine 125',
     category: 'Motorcycle',
@@ -87,7 +87,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-006',
-    registrationNumber: 'KA-01-MW-1006',
+    registrationNumber: 'MH12PW2447',
     brand: 'Yamaha',
     model: 'R15 V4',
     category: 'Sport',
@@ -103,7 +103,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-007',
-    registrationNumber: 'KA-01-MW-1007',
+    registrationNumber: 'MH12XP200',
     brand: 'Hero',
     model: 'Xpulse 200 4V',
     category: 'Motorcycle',
@@ -119,7 +119,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-008',
-    registrationNumber: 'KA-01-MW-1008',
+    registrationNumber: 'MH47AQ5461',
     brand: 'Royal Enfield',
     model: 'Classic 350',
     category: 'Cruiser',
@@ -135,7 +135,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-009',
-    registrationNumber: 'KA-01-MW-1009',
+    registrationNumber: 'MH12XR1114',
     brand: 'Royal Enfield',
     model: 'Hunter 350',
     category: 'Motorcycle',
@@ -151,7 +151,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-010',
-    registrationNumber: 'KA-01-MW-1010',
+    registrationNumber: 'MH12WY6443',
     brand: 'Royal Enfield',
     model: 'Meteor 350',
     category: 'Cruiser',
@@ -167,7 +167,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-011',
-    registrationNumber: 'KA-01-MW-1011',
+    registrationNumber: 'MH12SP400',
     brand: 'Triumph',
     model: 'Speed 400',
     category: 'Sport',
@@ -183,7 +183,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-012',
-    registrationNumber: 'KA-01-MW-1012',
+    registrationNumber: 'MH12QV0205',
     brand: 'BMW',
     model: 'G310 R',
     category: 'Sport',
@@ -199,7 +199,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-013',
-    registrationNumber: 'KA-01-MW-1013',
+    registrationNumber: 'GJ02EQ9763',
     brand: 'Royal Enfield',
     model: 'Himalayan 450',
     category: 'Cruiser',
@@ -215,7 +215,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
   {
     id: 'VH-014',
-    registrationNumber: 'KA-01-MW-1014',
+    registrationNumber: 'MH12CG650',
     brand: 'Royal Enfield',
     model: 'Continental GT 650',
     category: 'Sport',
@@ -231,7 +231,7 @@ export const MEQ_OFFICIAL_FLEET: Vehicle[] = [
   },
 ];
 
-const FLEET_VERSION_KEY = 'meq_official_fleet_loaded_v2';
+const FLEET_VERSION_KEY = 'meq_official_fleet_loaded_v3';
 
 export function seedInitialData(): void {
   // If version key is not set, flush old demo data and load official vehicle fleet
