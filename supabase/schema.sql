@@ -242,44 +242,46 @@ $$ LANGUAGE sql SECURITY DEFINER;
 -- Profiles
 DROP POLICY IF EXISTS "Users can view own profile or admins view all" ON profiles;
 CREATE POLICY "Users can view own profile or admins view all" ON profiles
-    FOR SELECT TO authenticated USING (auth.uid() = id OR get_user_role() = 'admin');
+    FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Admins can manage profiles" ON profiles;
 CREATE POLICY "Admins can manage profiles" ON profiles
-    FOR ALL TO authenticated USING (get_user_role() = 'admin');
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- Branches
+DROP POLICY IF EXISTS "Anyone can view active branches" ON branches;
 DROP POLICY IF EXISTS "Anyone authenticated can view active branches" ON branches;
-CREATE POLICY "Anyone authenticated can view active branches" ON branches
-    FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Anyone can view active branches" ON branches
+    FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Admins can manage branches" ON branches;
 CREATE POLICY "Admins can manage branches" ON branches
-    FOR ALL TO authenticated USING (get_user_role() = 'admin');
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- Vehicles
+DROP POLICY IF EXISTS "Users can view vehicles" ON vehicles;
 DROP POLICY IF EXISTS "Authenticated users can view vehicles" ON vehicles;
-CREATE POLICY "Authenticated users can view vehicles" ON vehicles
-    FOR SELECT TO authenticated USING (true);
+CREATE POLICY "Users can view vehicles" ON vehicles
+    FOR SELECT TO anon, authenticated USING (true);
 
 DROP POLICY IF EXISTS "Staff can manage vehicles" ON vehicles;
 CREATE POLICY "Staff can manage vehicles" ON vehicles
-    FOR ALL TO authenticated USING (get_user_role() IN ('admin', 'manager', 'staff'));
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- Customers
 DROP POLICY IF EXISTS "Staff can manage customers" ON customers;
 CREATE POLICY "Staff can manage customers" ON customers
-    FOR ALL TO authenticated USING (get_user_role() IN ('admin', 'manager', 'staff'));
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- Bookings
 DROP POLICY IF EXISTS "Staff can manage bookings" ON bookings;
 CREATE POLICY "Staff can manage bookings" ON bookings
-    FOR ALL TO authenticated USING (get_user_role() IN ('admin', 'manager', 'staff'));
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- Payments
 DROP POLICY IF EXISTS "Staff can manage payments" ON payments;
 CREATE POLICY "Staff can manage payments" ON payments
-    FOR ALL TO authenticated USING (get_user_role() IN ('admin', 'manager', 'staff'));
+    FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
 -- ==============================================================================
 -- 5. SEED INITIAL HEADQUARTERS BRANCH

@@ -5,11 +5,49 @@ import { generateId, calculateDuration, isDateOverlap } from '../lib/utils';
 import { customerService } from './customerService';
 import { vehicleService } from './vehicleService';
 import { paymentService } from './paymentService';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
 
 const storage = new StorageService<Booking>(STORAGE_KEYS.BOOKINGS);
 
 export const bookingService = {
   async getAll(): Promise<Booking[]> {
+    if (isSupabaseConfigured) {
+      try {
+        const { data, error } = await supabase
+          .from('bookings')
+          .select('*, customers(custom_id, name, phone), vehicles(custom_id, brand, model, registration_number)')
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          const mapped: Booking[] = data.map((b: any) => ({
+            id: b.custom_id,
+            customerId: b.customers?.custom_id || b.customer_id,
+            customerName: b.customers?.name || '',
+            customerPhone: b.customers?.phone || '',
+            vehicleId: b.vehicles?.custom_id || b.vehicle_id,
+            vehicleName: b.vehicles ? `${b.vehicles.brand} ${b.vehicles.model}` : '',
+            vehicleRegistration: b.vehicles?.registration_number,
+            pickupDate: b.pickup_date,
+            pickupTime: b.pickup_time || '10:00:00',
+            returnDate: b.return_date,
+            returnTime: b.return_time || '10:00:00',
+            rentalDuration: Number(b.rental_duration),
+            rentalAmount: Number(b.rental_amount),
+            securityDeposit: Number(b.security_deposit || 0),
+            advancePayment: Number(b.advance_payment || 0),
+            remainingBalance: Number(b.outstanding_balance ?? Math.max(0, b.rental_amount - b.advance_payment)),
+            status: b.status,
+            notes: b.notes || undefined,
+            createdAt: b.created_at,
+            updatedAt: b.updated_at,
+          }));
+          storage.save(mapped);
+          return mapped;
+        }
+      } catch (err) {
+        console.warn('Supabase bookings fetch notice:', err);
+      }
+    }
     return storage.getAll();
   },
 
@@ -122,6 +160,38 @@ export const bookingService = {
 
     const saved = await storage.create(booking);
 
+    // Save to Supabase if configured
+    if (isSupabaseConfigured) {
+      try {
+        const { data: dbCustomer } = await supabase.from('customers').select('id').eq('custom_id', booking.customerId).single();
+        const { data: dbVehicle } = await supabase.from('vehicles').select('id').eq('custom_id', booking.vehicleId).single();
+
+        if (dbCustomer && dbVehicle) {
+          await supabase.from('bookings').insert({
+            custom_id: booking.id,
+            customer_id: dbCustomer.id,
+            vehicle_id: dbVehicle.id,
+            pickup_date: booking.pickupDate,
+            pickup_time: booking.pickupTime || '10:00:00',
+            return_date: booking.returnDate,
+            return_time: booking.returnTime || '10:00:00',
+            rental_duration: booking.rentalDuration,
+            rental_amount: booking.rentalAmount,
+            security_deposit: booking.securityDeposit,
+            advance_payment: booking.advancePayment,
+            amount_paid: booking.advancePayment,
+            outstanding_balance: booking.remainingBalance,
+            status: booking.status,
+            notes: booking.notes || null,
+            created_at: booking.createdAt,
+            updated_at: booking.updatedAt,
+          });
+        }
+      } catch (err) {
+        console.warn('Supabase booking insert notice:', err);
+      }
+    }
+
     // Update vehicle status for all booked vehicles
     for (const vItem of vehicleItems) {
       if (initialStatus === 'active') {
@@ -197,6 +267,20 @@ export const bookingService = {
       images: data.images !== undefined ? data.images : existing.images,
       updatedAt: new Date().toISOString(),
     } as Partial<Booking>);
+
+    if (isSupabaseConfigured) {
+      try {
+        const payload: Record<string, any> = { updated_at: new Date().toISOString() };
+        if (newStatus !== undefined) payload.status = newStatus;
+        if (data.rentalAmount !== undefined) payload.rental_amount = data.rentalAmount;
+        if (data.advancePayment !== undefined) payload.advance_payment = data.advancePayment;
+        if (remainingBalance !== undefined) payload.outstanding_balance = remainingBalance;
+        if (data.notes !== undefined) payload.notes = data.notes;
+        await supabase.from('bookings').update(payload).eq('custom_id', id);
+      } catch (err) {
+        console.warn('Supabase booking update notice:', err);
+      }
+    }
 
     // Handle vehicle status transitions for all vehicles
     if (newStatus === 'active') {

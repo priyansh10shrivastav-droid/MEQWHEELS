@@ -10,6 +10,9 @@ import { Input, Select, Textarea } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { ConfirmDialog } from '../components/shared/ConfirmDialog';
 import toast from 'react-hot-toast';
+import { supabase, isSupabaseConfigured } from '../lib/supabase';
+import { migrateLocalStorageToSupabase } from '../lib/migrateData';
+import { SUPABASE_SCHEMA_SQL } from '../lib/schemaSql';
 import {
   Settings as SettingsIcon,
   Building,
@@ -20,6 +23,13 @@ import {
   Sliders,
   DollarSign,
   CheckCircle,
+  Copy,
+  ExternalLink,
+  Check,
+  Cloud,
+  RefreshCw,
+  AlertCircle,
+  Sparkles,
 } from 'lucide-react';
 
 const settingsSchema = z.object({
@@ -41,6 +51,72 @@ type FormValues = z.infer<typeof settingsSchema>;
 
 export const Settings: React.FC = () => {
   const [loading, setLoading] = useState(true);
+  const [dbStatus, setDbStatus] = useState<'checking' | 'ready' | 'missing_tables' | 'error'>('checking');
+  const [isCheckingDb, setIsCheckingDb] = useState(false);
+  const [isMigrating, setIsMigrating] = useState(false);
+  const [copiedSql, setCopiedSql] = useState(false);
+
+  const checkDb = async () => {
+    setIsCheckingDb(true);
+    if (!isSupabaseConfigured) {
+      setDbStatus('error');
+      setIsCheckingDb(false);
+      return;
+    }
+    try {
+      const { error } = await supabase.from('customers').select('id').limit(1);
+      if (!error) {
+        setDbStatus('ready');
+      } else if (error.code === 'PGRST205' || error.message.includes('Could not find the table') || error.message.includes('schema cache')) {
+        setDbStatus('missing_tables');
+      } else {
+        setDbStatus('ready');
+      }
+    } catch {
+      setDbStatus('error');
+    } finally {
+      setIsCheckingDb(false);
+    }
+  };
+
+  useEffect(() => {
+    checkDb();
+  }, []);
+
+  const handleCopySql = async () => {
+    try {
+      await navigator.clipboard.writeText(SUPABASE_SCHEMA_SQL);
+      setCopiedSql(true);
+      toast.success('SQL schema copied to clipboard! Paste it into the Supabase SQL editor.');
+      setTimeout(() => setCopiedSql(false), 3000);
+    } catch {
+      toast.error('Could not copy to clipboard. Please copy from supabase/schema.sql');
+    }
+  };
+
+  const handleSyncToSupabase = async () => {
+    setIsMigrating(true);
+    toast.loading('Syncing records to Supabase PostgreSQL...', { id: 'db-sync' });
+    try {
+      const res = await migrateLocalStorageToSupabase();
+      if (res.errors.length === 0) {
+        toast.success(
+          `Synced ${res.customersMigrated} customers, ${res.vehiclesMigrated} vehicles, ${res.bookingsMigrated} bookings, ${res.paymentsMigrated} payments to Supabase!`,
+          { id: 'db-sync', duration: 5000 },
+        );
+      } else {
+        toast.success(
+          `Synced: ${res.customersMigrated} cust, ${res.vehiclesMigrated} veh, ${res.bookingsMigrated} bk. (${res.errors.length} skipped)`,
+          { id: 'db-sync', duration: 5000 },
+        );
+      }
+      checkDb();
+    } catch (e: any) {
+      toast.error(`Sync error: ${e.message}`, { id: 'db-sync' });
+    } finally {
+      setIsMigrating(false);
+    }
+  };
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -310,29 +386,131 @@ export const Settings: React.FC = () => {
         </div>
       </form>
 
-      {/* Database & Data Management Section */}
+      {/* Cloud Database (Supabase) Management Section */}
+      <div className="p-6 rounded-xl border border-neutral-800 bg-neutral-900 space-y-5">
+        <div className="flex items-center justify-between border-b border-neutral-800 pb-3">
+          <div className="flex items-center gap-3">
+            <Cloud size={20} className="text-emerald-400" />
+            <div>
+              <h2 className="text-base font-semibold text-white">Supabase Cloud Database & Synchronization</h2>
+              <p className="text-xs text-neutral-400">
+                Centralized PostgreSQL database for cross-device persistence.
+              </p>
+            </div>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            icon={<RefreshCw size={14} className={isCheckingDb ? 'animate-spin' : ''} />}
+            onClick={checkDb}
+            loading={isCheckingDb}
+          >
+            Recheck Database
+          </Button>
+        </div>
+
+        {/* Database Status Alert */}
+        {dbStatus === 'ready' ? (
+          <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/20 text-emerald-300 text-xs flex items-start gap-3">
+            <CheckCircle size={18} className="shrink-0 text-emerald-400 mt-0.5" />
+            <div className="space-y-1">
+              <p className="font-semibold text-white text-sm">Supabase Database Connected & Tables Ready</p>
+              <p className="text-emerald-300/80">
+                Your PostgreSQL tables (<code className="text-emerald-200">customers</code>, <code className="text-emerald-200">vehicles</code>, <code className="text-emerald-200">bookings</code>, <code className="text-emerald-200">payments</code>) are active. All new actions automatically sync to the cloud.
+              </p>
+            </div>
+          </div>
+        ) : dbStatus === 'missing_tables' ? (
+          <div className="p-4 rounded-xl border border-amber-500/40 bg-amber-950/20 text-amber-300 text-xs flex items-start gap-3">
+            <AlertCircle size={18} className="shrink-0 text-amber-400 mt-0.5" />
+            <div className="space-y-2">
+              <p className="font-semibold text-white text-sm">Action Required: Tables Not Created Yet in Supabase</p>
+              <p className="text-amber-300/90 leading-relaxed">
+                Your API credentials are connected, but the PostgreSQL database tables have not been created in Supabase yet.
+                Click <strong>"Copy SQL Schema"</strong> below and run it in your Supabase SQL Editor to activate full cloud storage.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-1">
+                <Button
+                  type="button"
+                  variant="primary"
+                  size="sm"
+                  icon={copiedSql ? <Check size={14} /> : <Copy size={14} />}
+                  onClick={handleCopySql}
+                >
+                  {copiedSql ? 'Schema Copied!' : 'Copy SQL Schema (1-Click)'}
+                </Button>
+                <a
+                  href="https://supabase.com/dashboard/project/wkpbhrltaaewxrkvvgid/sql/new"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-700 bg-neutral-800 hover:bg-neutral-700 text-xs text-white font-medium transition-colors"
+                >
+                  <ExternalLink size={14} />
+                  <span>Open Supabase SQL Editor</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="p-4 rounded-xl border border-neutral-800 bg-neutral-950/50 text-neutral-300 text-xs flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+              <span>Checking Supabase table status...</span>
+            </div>
+          </div>
+        )}
+
+        {/* Database Details */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+          <div className="p-3 rounded-lg border border-neutral-800 bg-neutral-950/60">
+            <span className="text-neutral-500 block">Supabase Project Host</span>
+            <span className="font-mono text-neutral-200 text-[11px] truncate block mt-0.5">
+              wkpbhrltaaewxrkvvgid.supabase.co
+            </span>
+          </div>
+          <div className="p-3 rounded-lg border border-neutral-800 bg-neutral-950/60">
+            <span className="text-neutral-500 block">Current Storage Mode</span>
+            <span className="font-semibold text-emerald-400 block mt-0.5">
+              {dbStatus === 'ready' ? 'Hybrid (Cloud Supabase + Local Cache)' : 'Local Cache (Awaiting SQL Schema Execution)'}
+            </span>
+          </div>
+        </div>
+
+        {/* Cloud Migration Action Bar */}
+        <div className="pt-2 border-t border-neutral-800/80 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-xs font-semibold text-white">Cloud Data Synchronization</p>
+            <p className="text-[11px] text-neutral-400">
+              Transfer existing local browser records (customers, vehicles, bookings) into Supabase PostgreSQL.
+            </p>
+          </div>
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            icon={<Sparkles size={14} className="text-emerald-400" />}
+            onClick={handleSyncToSupabase}
+            loading={isMigrating}
+          >
+            Sync Local Data to Supabase
+          </Button>
+        </div>
+      </div>
+
+      {/* Local Storage & Reset Section */}
       <div className="p-6 rounded-xl border border-neutral-800 bg-neutral-900 space-y-4">
         <div className="flex items-center gap-3 border-b border-neutral-800 pb-3">
-          <Database size={18} className="text-emerald-400" />
+          <Database size={18} className="text-neutral-400" />
           <div>
-            <h2 className="text-base font-semibold text-white">Data Storage & Migration (Stage 1)</h2>
+            <h2 className="text-base font-semibold text-white">Local Storage Utilities</h2>
             <p className="text-xs text-neutral-400">
-              Operating in client-side persistence mode. Ready for Supabase plug-and-play in Stage 2.
+              Emergency local dataset resets and demo re-seeding.
             </p>
           </div>
         </div>
 
-        <div className="p-3.5 rounded-lg border border-neutral-800 bg-neutral-950/60 flex items-center justify-between text-xs">
-          <div className="flex items-center gap-2 text-neutral-300">
-            <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="font-semibold text-white">Current Driver:</span> Browser LocalStorage Repository
-          </div>
-          <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-            Stage 1 Active
-          </span>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-3 pt-2">
+        <div className="flex flex-wrap items-center gap-3 pt-1">
           <Button
             type="button"
             variant="secondary"

@@ -49,7 +49,7 @@ export class StorageService<T extends { id: string }> {
     return items.filter(predicate);
   }
 
-  private save(items: T[]): void {
+  save(items: T[]): void {
     try {
       localStorage.setItem(this.key, JSON.stringify(items));
     } catch {
