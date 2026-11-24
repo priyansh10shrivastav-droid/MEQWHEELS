@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { BusinessSettings, defaultSettings } from '../types';
 import { settingsService } from '../services/settingsService';
-import { seedInitialData } from '../lib/seedData';
+import { seedInitialData, MEQ_OFFICIAL_FLEET } from '../lib/seedData';
 import { STORAGE_KEYS } from '../lib/constants';
 import { Input, Select, Textarea } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -177,14 +177,19 @@ export const Settings: React.FC = () => {
   const handleReSeedData = () => {
     setConfirmDialog({
       isOpen: true,
-      title: 'Re-seed Demo Data',
-      message: 'This will reset your local storage and load fresh demo data (vehicles, customers, bookings, payments). Current edits will be replaced.',
-      confirmLabel: 'Re-seed Data',
-      variant: 'danger',
+      title: 'Load Official MEQ Fleet & Clear Demo Records',
+      message: 'This will clear all demo customers, bookings, and payments, and load the 14 official MEQ Wheels vehicles with their verified daily, weekly, and monthly rates.',
+      confirmLabel: 'Load Official Fleet',
+      variant: 'primary',
       onConfirm: async () => {
-        localStorage.clear();
-        seedInitialData();
-        toast.success('Demo data restored! Refreshing page...');
+        localStorage.removeItem(STORAGE_KEYS.BOOKINGS);
+        localStorage.removeItem(STORAGE_KEYS.PAYMENTS);
+        localStorage.removeItem(STORAGE_KEYS.CUSTOMERS);
+        localStorage.setItem(STORAGE_KEYS.BOOKINGS, JSON.stringify([]));
+        localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify([]));
+        localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify([]));
+        localStorage.setItem(STORAGE_KEYS.VEHICLES, JSON.stringify(MEQ_OFFICIAL_FLEET));
+        toast.success('Official MEQ Wheels fleet loaded successfully! Refreshing...');
         setTimeout(() => window.location.reload(), 800);
       },
     });
@@ -518,7 +523,7 @@ export const Settings: React.FC = () => {
             icon={<RotateCcw size={14} />}
             onClick={handleReSeedData}
           >
-            Reload Initial Demo Dataset
+            Load Official MEQ Fleet
           </Button>
 
           <Button

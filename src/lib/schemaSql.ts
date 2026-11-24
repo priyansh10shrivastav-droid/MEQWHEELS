@@ -1,4 +1,4 @@
-export const SUPABASE_SCHEMA_SQL = `-- MEQ Wheels Essential Production Tables (100% Fail-Safe)
+export const SUPABASE_SCHEMA_SQL = `-- MEQ Wheels Essential Production Tables & Official Fleet
 
 CREATE TABLE IF NOT EXISTS branches (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -101,7 +101,30 @@ CREATE POLICY "Allow all for bookings" ON bookings FOR ALL TO anon, authenticate
 DROP POLICY IF EXISTS "Allow all for payments" ON payments;
 CREATE POLICY "Allow all for payments" ON payments FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
 
+-- Seed Initial Hub
 INSERT INTO branches (name, code, phone, email, address, is_active)
 VALUES ('MEQ Wheels Bengaluru Hub', 'BLR-IND', '+91 98765 43210', 'hub.indiranagar@meqwheels.in', '100ft Road, Indiranagar, Bengaluru, Karnataka 560038', true)
 ON CONFLICT (code) DO NOTHING;
+
+-- Seed Official MEQ Wheels 14-Vehicle Fleet
+INSERT INTO vehicles (custom_id, registration_number, brand, model, category, rental_price, security_deposit, status, notes)
+VALUES
+('VH-001', 'KA-01-MW-1001', 'Honda', 'Activa 2G', 'Scooter', 479, 1000, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹1,879 | Monthly: ₹4,784'),
+('VH-002', 'KA-01-MW-1002', 'Honda', 'Activa 6G', 'Scooter', 549, 1000, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹2,149 | Monthly: ₹5,744'),
+('VH-003', 'KA-01-MW-1003', 'Yamaha', 'Fascino 125', 'Scooter', 549, 1000, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹2,149 | Monthly: ₹5,744'),
+('VH-004', 'KA-01-MW-1004', 'TVS', 'Raider 125', 'Motorcycle', 679, 1500, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹2,449 | Monthly: ₹6,749'),
+('VH-005', 'KA-01-MW-1005', 'Honda', 'Shine 125', 'Motorcycle', 649, 1500, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹2,349 | Monthly: ₹6,449'),
+('VH-006', 'KA-01-MW-1006', 'Yamaha', 'R15 V4', 'Sport', 979, 2500, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹4,779 | Monthly: ₹12,499'),
+('VH-007', 'KA-01-MW-1007', 'Hero', 'Xpulse 200 4V', 'Motorcycle', 949, 2000, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹4,779 | Monthly: ₹11,449'),
+('VH-008', 'KA-01-MW-1008', 'Royal Enfield', 'Classic 350', 'Cruiser', 1149, 2500, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹5,449 | Monthly: ₹12,779'),
+('VH-009', 'KA-01-MW-1009', 'Royal Enfield', 'Hunter 350', 'Motorcycle', 1179, 2500, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹5,749 | Monthly: ₹13,779'),
+('VH-010', 'KA-01-MW-1010', 'Royal Enfield', 'Meteor 350', 'Cruiser', 1349, 3000, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹6,449 | Monthly: ₹13,779'),
+('VH-011', 'KA-01-MW-1011', 'Triumph', 'Speed 400', 'Sport', 1449, 3500, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹7,449 | Monthly: ₹16,449'),
+('VH-012', 'KA-01-MW-1012', 'BMW', 'G310 R', 'Sport', 1479, 3500, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹8,449 | Monthly: ₹20,449'),
+('VH-013', 'KA-01-MW-1013', 'Royal Enfield', 'Himalayan 450', 'Cruiser', 1779, 4000, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹9,449 | Monthly: ₹27,779'),
+('VH-014', 'KA-01-MW-1014', 'Royal Enfield', 'Continental GT 650', 'Sport', 2249, 4000, 'available', 'Daily KM: 150 - 200 KM | Weekly: ₹10,779 | Monthly: ₹32,449')
+ON CONFLICT (custom_id) DO UPDATE SET
+  rental_price = EXCLUDED.rental_price,
+  security_deposit = EXCLUDED.security_deposit,
+  notes = EXCLUDED.notes;
 `;

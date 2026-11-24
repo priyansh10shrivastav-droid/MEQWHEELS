@@ -164,13 +164,29 @@ export const VehicleDetailsModal: React.FC<VehicleDetailsModalProps> = ({
           <>
             {activeTab === 'overview' && (
               <div className="space-y-4">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   <div className="p-3.5 rounded-xl border border-neutral-800 bg-neutral-900/40">
-                    <p className="text-xs text-neutral-400">Daily Rental</p>
+                    <p className="text-xs text-neutral-400">Daily Rent (24 Hrs)</p>
                     <p className="text-base font-bold text-white mt-1">
                       {formatCurrency(vehicle.rentalPrice)}/day
                     </p>
                   </div>
+                  {vehicle.weeklyPrice && (
+                    <div className="p-3.5 rounded-xl border border-neutral-800 bg-neutral-900/40">
+                      <p className="text-xs text-neutral-400">Per Week</p>
+                      <p className="text-base font-bold text-emerald-400 mt-1">
+                        {formatCurrency(vehicle.weeklyPrice)}
+                      </p>
+                    </div>
+                  )}
+                  {vehicle.monthlyPrice && (
+                    <div className="p-3.5 rounded-xl border border-neutral-800 bg-neutral-900/40">
+                      <p className="text-xs text-neutral-400">Per Month</p>
+                      <p className="text-base font-bold text-emerald-400 mt-1">
+                        {formatCurrency(vehicle.monthlyPrice)}
+                      </p>
+                    </div>
+                  )}
                   <div className="p-3.5 rounded-xl border border-neutral-800 bg-neutral-900/40">
                     <p className="text-xs text-neutral-400">Security Deposit</p>
                     <p className="text-base font-bold text-neutral-200 mt-1">
@@ -178,15 +194,15 @@ export const VehicleDetailsModal: React.FC<VehicleDetailsModalProps> = ({
                     </p>
                   </div>
                   <div className="p-3.5 rounded-xl border border-neutral-800 bg-neutral-900/40">
-                    <p className="text-xs text-neutral-400">Category</p>
-                    <p className="text-base font-bold text-emerald-400 mt-1">
-                      {vehicle.category}
+                    <p className="text-xs text-neutral-400">Daily KM Limit</p>
+                    <p className="text-base font-bold text-white mt-1">
+                      {vehicle.dailyKmLimit || '150 - 200 KM'}
                     </p>
                   </div>
                   <div className="p-3.5 rounded-xl border border-neutral-800 bg-neutral-900/40">
-                    <p className="text-xs text-neutral-400">Total Bookings</p>
-                    <p className="text-base font-bold text-white mt-1">
-                      {bookings.length}
+                    <p className="text-xs text-neutral-400">Category</p>
+                    <p className="text-base font-bold text-neutral-300 mt-1">
+                      {vehicle.category}
                     </p>
                   </div>
                 </div>

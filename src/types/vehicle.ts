@@ -12,6 +12,9 @@ export interface Vehicle {
   securityDeposit: number;
   status: VehicleStatus;
   notes: string;
+  weeklyPrice?: number;
+  monthlyPrice?: number;
+  dailyKmLimit?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -25,4 +28,7 @@ export interface VehicleFormData {
   securityDeposit: number;
   status: VehicleStatus;
   notes: string;
+  weeklyPrice?: number;
+  monthlyPrice?: number;
+  dailyKmLimit?: string;
 }
