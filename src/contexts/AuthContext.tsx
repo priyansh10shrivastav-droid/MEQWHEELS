@@ -131,8 +131,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    // System admin login credentials check (admin@meqwheels.in / @Meq123)
-    if (cleanEmail === 'admin@meqwheels.in' && cleanPassword === '@Meq123') {
+    // System admin login credentials check (admin@meqwheels.in / @Meqcruzmewada)
+    if (cleanEmail === 'admin@meqwheels.in' && cleanPassword === '@Meqcruzmewada') {
       const adminUser: AdminUser = {
         ...DEFAULT_ADMIN,
         email: cleanEmail,
